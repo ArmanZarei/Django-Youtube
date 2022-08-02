@@ -39,7 +39,7 @@ class CustomLogin(LoginView):
             messages.error(self.request, "Permission denied. You have to use VPN to log in as an admin.")
             logout(self.request)
             return redirect('home')
-        elif form.get_user().is_authenticated and form.get_user().profile.role == Profile.Role.ADMIN and not form.get_user().profile.is_approved:
+        elif form.get_user().profile.role == Profile.Role.ADMIN and not form.get_user().profile.is_approved:
             messages.error(self.request, "Permission denied. The owner of the website has not approved your registration yet. Please wait...")
             logout(self.request)
             return redirect('home')
