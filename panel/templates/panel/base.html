@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if title %}
+        <title>Youtube - {{ title }}</title>
+    {% else %}
+        <title>Youtube</title>
+    {% endif %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" 
+        integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class='container'>
+        <a class="navbar-brand" href="{% url 'home' %}">Youtube</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse d-flex" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+            </ul>
+            <div>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-success me-1">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary">Register</a>
+                {% else %}
+                    <div class="dropdown">
+                        <a class="nav-link link-secondary dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile-tickets' %}">Tickets</a></li>
+                            {% if user.profile.role != 'OWNER' %}
+                                <li><a class="dropdown-item" href="{% url 'ticket-create' %}">Create Ticket</a></li>
+                            {% endif %}
+                            {% if user.profile.role == 'NORMAL' %}
+                                {% if not user.profile.strike %}
+                                    <li><a class="dropdown-item" href="{% url 'post-create' %}">Create Post</a></li>
+                                {% else %}
+                                    <li data-bs-toggle="tooltip" data-bs-placement="left" title="You have a strike">
+                                        <a class="dropdown-item disabled" href="{% url 'post-create' %}">Create Post</a>
+                                    </li>
+                                {% endif %}
+                            {% elif user.profile.role == 'ADMIN' %}
+                                <li><a class="dropdown-item" href="{% url 'striked-users-list' %}">Striked profiles</a></li>
+                            {% elif user.profile.role == 'OWNER' %}
+                                <li><a class="dropdown-item" href="{% url 'new-admin-registrations' %}">New Admin Registrations</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a href="{% url 'logout' %}" class="dropdown-item text-danger">Logout</a></li>
+                        </ul>
+                    </div>
+
+                    {% comment %} Another Style {% endcomment %}
+                    {% comment %} {% if user.profile.role == 'NORMAL' %}
+                        {% if not user.profile.strike %}
+                            <a href="{% url 'post-create' %}" class="btn btn-outline-success">Create Post</a>
+                        {% else %}
+                        <span class='d-inline-block' data-bs-toggle="tooltip" data-bs-placement="bottom" title="You have a strike" >
+                            <a href="{% url 'post-create' %}" class="btn btn-outline-success disabled">Create Post</a>
+                        </span>
+                        {% endif %}
+                    {% elif user.profile.role == 'ADMIN' %}
+                        <a href="{% url 'striked-users-list' %}" class="btn btn-outline-secondary">Striked profiles</a>
+                    {% elif user.profile.role == 'OWNER' %}
+                        <a href="{% url 'new-admin-registrations' %}" class="btn btn-outline-secondary">New Admin Registrations</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="btn btn-outline-danger">Logout</a> {% endcomment %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+{% if messages %}
+    <div class='container mt-3'>
+        {% for message in messages %}
+            <div class='alert alert-{{ message.tags }}'>{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/js/all.min.js"
+        integrity="sha512-8pHNiqTlsrRjVD4A/3va++W1sMbUHwWxxRPWNyVlql3T+Hgfd81Qc6FC5WMXDC+tSauxxzp1tgiAvSKFu1qIlA=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

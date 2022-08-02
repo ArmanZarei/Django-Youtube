@@ -1,0 +1,28 @@
+{% extends "panel/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% block content %}
+    <div class="container mb-5 pb-5 mt-5">
+        <h3 class='text-center'>{{ ticket.title }}</h3>
+        <hr>
+        {% for message in ticket.messages.all %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class='m-0'>{{ message.user }}</h5>
+                    <span>{{ message.created_at | date:"F d, Y" }}</span>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ message.content }}</p>
+                </div>
+            </div>
+        {% endfor %} 
+        <hr>
+        <form method="POST" enctype="multipart/form-data" action="{% url 'new-ticket-message' ticket.pk %}" class='ps-4 pe-4'>
+            {% csrf_token %}
+            {{ form | crispy }}
+            <button class="btn btn-outline-primary" type='submit'>Submit</button>
+        </form>
+    </div>
+{% endblock %}

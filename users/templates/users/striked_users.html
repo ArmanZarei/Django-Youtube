@@ -1,0 +1,34 @@
+{% extends "panel/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% block content %}
+    <div class="container mb-5 pb-5 mt-5">
+        <table class="table table-striped table-hover text-center align-middle">
+            <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Username</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if not profiles %}
+                    <tr>
+                        <td colspan='4' class='text-center'>No striked profiles</th>
+                    </tr>
+                {% endif %}
+                {% for p in profiles %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:1 }}</td>
+                        <td>{{ p.user.username }}</td>
+                        <td>{{ p.user.email }}</td>
+                        <td><a href="{% url 'remove-profile-strike' p.pk %}" class='btn btn-sm btn-outline-primary'>Remove Strike</a></td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+        </table>
+    </div>
+{% endblock %}

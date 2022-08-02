@@ -1,0 +1,94 @@
+{% extends "panel/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% block content %}
+    <div class="container mb-5 pb-5">
+        {% if post.is_accessible %}
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <h4 class="m-0 me-auto">{{ object.title }}</h4>
+                    <div class="d-flex align-items-center">
+                        <img src="{{ object.author.profile.image.url }}" alt="" class="rounded-circle me-2" width="30">
+                        <a class="text-decoration-none text-dark"
+                        href="{% comment %} {% url 'user-posts' post.author.username %} {% endcomment %}">{{ post.author.username }}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class='text-center'>
+                        <video width="90%" controls>
+                            <source src="{{ post.video.url }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <hr>
+                    <div>
+                        <span class='text-muted'>Created at: {{ object.created_at | date:"F d, Y" }}</span>
+                        <br><br>
+                        <span class='text-muted'>Tags: </span>
+                        {% if not post.tags %}
+                            <span class="badge bg-secondary">No tags</span>
+                        {% else %}
+                            {% with post.tags|split:"," as tags %}
+                                {% for tag in tags %}
+                                    <span class="badge bg-primary">{{ tag|strip }}</span>
+                                {% endfor %}
+                            {% endwith %}
+                        {% endif %}
+                        <br>
+                        <div class='mt-4'>
+                            <span>{{ like_cnt }}</span>
+                            {% if request.user.is_authenticated %}
+                                <a href="{% url 'switch-user-like-dislike' post.pk %}?like_type=like"><i class="fa-{% if is_liked %}solid{% else %}regular{% endif %} fa-thumbs-up me-3"></i></a>
+                            {% else %}
+                                <i class="fa-{% if is_liked %}solid{% else %}regular{% endif %} fa-thumbs-up me-3"></i>
+                            {% endif %}
+                            <span>{{ dislike_cnt }}</span>
+                            {% if request.user.is_authenticated %}
+                                <a href="{% url 'switch-user-like-dislike' post.pk %}?like_type=dislike"><i class="fa-{% if is_disliked %}solid{% else %}regular{% endif %} fa-thumbs-down"></i></a>
+                            {% else %}
+                                <i class="fa-{% if is_disliked %}solid{% else %}regular{% endif %} fa-thumbs-down"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if user.profile.role == "ADMIN" %}
+                        <div style="position: absolute; right: 10px; bottom: 10px;">
+                            <a href="{% url 'update-tags' post.pk %}" class="btn btn-outline-primary btn-sm">Update tags</a>
+                            <a href="{% url 'make-post-inaccessible' post.pk %}" class="btn btn-outline-danger btn-sm">Make Inaccessible</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class='mt-4'>
+                <h2>Comments</h2>
+                <div class='ps-4 pe-4'>
+                    {% if object.comment_set.count > 0 %}
+                        <ul class="list-group">
+                            {% for comment in object.comment_set.all %}
+                                <li class="list-group-item"><b>{{ comment.user.username }}</b>: {{ comment.content }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        No comments
+                    {% endif %}
+                </div>
+            </div>
+            <hr>
+            <div>
+                <h2>Send a comment</h2>
+                {% if request.user.is_authenticated %}
+                    <form method="POST" enctype="multipart/form-data" class='ps-4 pe-4'>
+                        {% csrf_token %}
+                        {{ form | crispy }}
+                        <button class="btn btn-outline-primary" type='submit'>Submit</button>
+                    </form>
+                {% else %}
+                    <p class='alert alert-warning text-center'>You need to <a href="{% url 'login' %}">login</a>!</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class='alert alert-danger text-center mt-5'>Post is inaccessible</p>
+        {% endif %}
+    </div>
+{% endblock %}

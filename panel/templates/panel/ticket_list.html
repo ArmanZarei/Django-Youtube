@@ -1,0 +1,53 @@
+{% extends "panel/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load filters %}
+
+{% block content %}
+    <div class="container mb-5 pb-5 mt-5">
+        <table class="table table-striped table-hover text-center align-middle">
+            <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Creator</th>
+                  <th scope="col">Title</th>
+                  <th scope="col">Action/State</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if not tickets %}
+                    <tr>
+                        <td colspan='4' class='text-center'>No tickets</th>
+                    </tr>
+                {% endif %}
+                {% for t in tickets %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:1 }}</td>
+                        <td>{{ t.user.username }}</td>
+                        <td>{{ t.title }}</td>
+                        <td>
+                            <a href="{% url 'ticket-messages' t.pk %}" class='btn btn-sm btn-outline-primary'>View</a>
+                            {% if request.user.profile.role != 'NORMAL' and t.user != request.user %}
+                                <div class="btn-group ms-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    State: {{ t.get_state_display }}
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'change-ticket-state' t.pk %}?state=NEW">New</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'change-ticket-state' t.pk %}?state=PENDING">Pending</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'change-ticket-state' t.pk %}?state=SOLVED">Solved</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'change-ticket-state' t.pk %}?state=CLOSED">Closed</a></li>
+                                    </ul>
+                                </div>
+                            {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary disabled ms-1">
+                                    State: {{ t.get_state_display }}
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+        </table>
+    </div>
+{% endblock %}

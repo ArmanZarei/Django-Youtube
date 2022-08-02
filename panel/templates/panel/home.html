@@ -1,0 +1,23 @@
+{% extends "panel/base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class='container mt-5'>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for post in posts %}
+              <div class="col">
+                <div class="card">
+                  <a href="{% url 'post-detail' post.pk %}"><img src="{% static 'images/video-placeholder.jpg' %}" class="card-img-top"></a>
+                  <div class="card-body">
+                    <a href="{% url 'post-detail' post.pk %}" class="text-decoration-none text-body"><h5 class="card-title">{{ post.title }}</h5></a>
+                    <div class='d-flex justify-content-between'>
+                      <p class="card-text text-muted mb-0">{{ post.author.username }}</p>
+                      <p class="card-text"><small class="text-muted">{{ post.created_at | date:'F d, Y'}}</small></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
