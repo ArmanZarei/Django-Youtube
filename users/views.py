@@ -1,10 +1,14 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
+from panel.utils import get_client_ip
 from users.models import Profile
 from .forms import UserRegisterForm, UserProfileRegisterationForm
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import logout
 
 
 def register(request):
@@ -27,6 +31,20 @@ def register(request):
         pform = UserProfileRegisterationForm()
 
     return render(request, 'users/auth/register.html', {"uform": uform, "pform": pform})
+
+
+class CustomLogin(LoginView):
+    def form_valid(self, form):
+        if (form.get_user().profile.role == Profile.Role.ADMIN or form.get_user().profile.role == Profile.Role.OWNER) and get_client_ip(self.request) != settings.ALLOWED_VPN_IP:
+            messages.error(self.request, "Permission denied. You have to use VPN to log in as an admin.")
+            logout(self.request)
+            return redirect('home')
+        elif form.get_user().is_authenticated and form.get_user().profile.role == Profile.Role.ADMIN and not form.get_user().profile.is_approved:
+            messages.error(self.request, "Permission denied. The owner of the website has not approved your registration yet. Please wait...")
+            logout(self.request)
+            return redirect('home')
+
+        return super().form_valid(form)
 
 
 class NewAdminRegistrationsListView(LoginRequiredMixin, UserPassesTestMixin, ListView):

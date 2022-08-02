@@ -12,21 +12,11 @@ from panel.forms import CreateCommentForm, CreateTicketForm, CreateTicketMessage
 from panel.models import Post, Ticket, UserLikeDisLikePost
 from users.models import Profile
 from panel.decorators import vpn_decorator
-from django.contrib.auth import logout
 from panel.utils import get_client_ip
 
 
 
 def home(request):
-    if request.user.is_authenticated and (request.user.profile.role == Profile.Role.ADMIN or request.user.profile.role == Profile.Role.OWNER) and get_client_ip(request) != settings.ALLOWED_VPN_IP:
-        messages.error(request, "Permission denied. You have to use VPN to log in as an admin.")
-        logout(request)
-        redirect('home')
-    elif request.user.is_authenticated and request.user.profile.role == Profile.Role.ADMIN and not request.user.profile.is_approved:
-        messages.error(request, "Permission denied. The owner of the website has not approved your registration yet. Please wait...")
-        logout(request)
-        redirect('home')
-
     return render(request, "panel/home.html", {"posts": Post.objects.filter(is_accessible=True).all()})
 
 
