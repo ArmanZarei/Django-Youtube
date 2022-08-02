@@ -22,6 +22,10 @@ def home(request):
         messages.error(request, "Permission denied. You have to use VPN to log in as an admin.")
         logout(request)
         redirect('home')
+    elif request.user.is_authenticated and request.user.profile.role == Profile.Role.ADMIN and not request.user.profile.is_approved:
+        messages.error(request, "Permission denied. The owner of the website has not approved your registration yet. Please wait...")
+        logout(request)
+        redirect('home')
 
     return render(request, "panel/home.html", {"posts": Post.objects.filter(is_accessible=True).all()})
 
