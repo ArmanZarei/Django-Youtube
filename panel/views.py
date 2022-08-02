@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -10,19 +11,18 @@ from django.urls import reverse
 from panel.forms import CreateCommentForm, CreateTicketForm, CreateTicketMessageForm
 from panel.models import Post, Ticket, UserLikeDisLikePost
 from users.models import Profile
+from panel.decorators import vpn_decorator
+from django.contrib.auth import logout
+from panel.utils import get_client_ip
 
-
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
 
 
 def home(request):
-    print(get_client_ip(request))
+    if request.user.is_authenticated and (request.user.profile.role == Profile.Role.ADMIN or request.user.profile.role == Profile.Role.OWNER) and get_client_ip(request) != settings.ALLOWED_VPN_IP:
+        messages.error(request, "Permission denied. You have to use VPN to log in as an admin.")
+        logout(request)
+        redirect('home')
+
     return render(request, "panel/home.html", {"posts": Post.objects.filter(is_accessible=True).all()})
 
 
@@ -107,6 +107,7 @@ def switch_user_like_dislike(request, post_pk):
 
 @login_required
 @user_passes_test(lambda user: user.profile.role == Profile.Role.ADMIN)
+@vpn_decorator
 def make_post_inaccessible(request, post_pk):
     post = Post.objects.filter(pk=post_pk).get()
     post.is_accessible = False
@@ -129,7 +130,7 @@ class PostTagsUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = ['tags']
 
     def test_func(self):
-        return self.request.user.profile.role == Profile.Role.ADMIN
+        return self.request.user.profile.role == Profile.Role.ADMIN and get_client_ip(self.request) == settings.ALLOWED_VPN_IP
 
 
 class MyTicketsListView(LoginRequiredMixin, ListView):
@@ -168,6 +169,7 @@ def create_ticket(request):
 
 @login_required
 @user_passes_test(lambda user: user.profile.role != Profile.Role.NORMAL)
+@vpn_decorator
 def change_ticket_state(request, ticket_pk):
     ticket = Ticket.objects.get(pk=ticket_pk)
     if request.user == ticket.user:
